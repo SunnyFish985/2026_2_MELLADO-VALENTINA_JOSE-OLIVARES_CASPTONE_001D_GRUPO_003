@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../lib/supabase';
-import { cerrarSesion } from '../services/authService'; // Importamos la función
+import { logout } from '../services/authService';
 
 export default function HomeScreen({ navigation }: any) {
   const [bebes, setBebes] = useState<any[]>([]);
@@ -14,10 +14,11 @@ export default function HomeScreen({ navigation }: any) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
+        // Actualizamos la consulta a las tablas y columnas en inglés
         const { data, error } = await supabase
-          .from('Usuario_Bebe')
-          .select(`id_bebe, Bebe (nombres_b, apellido_paterno_b)`)
-          .eq('id_usuario', user.id);
+          .from('user_babies')
+          .select(`baby_id, babies (first_name, paternal_last_name)`)
+          .eq('user_id', user.id);
 
         if (error) throw error;
         setBebes(data || []);
@@ -35,11 +36,9 @@ export default function HomeScreen({ navigation }: any) {
     return unsubscribe;
   }, [navigation]);
 
-  // Función para manejar el cierre de sesión
   const handleCerrarSesion = async () => {
     try {
-      await cerrarSesion();
-      // No necesitamos navegar manualmente, el AuthContext detectará que no hay sesión y nos enviará al Login
+      await logout();
     } catch (error: any) {
       Alert.alert("Error", "No se pudo cerrar sesión.");
     }
@@ -55,8 +54,6 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container}>
-
-      {/* Nuevo encabezado con botón de cerrar sesión */}
       <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>Panel Principal</Text>
         <TouchableOpacity style={styles.btnLogout} onPress={handleCerrarSesion}>
@@ -78,12 +75,14 @@ export default function HomeScreen({ navigation }: any) {
         <Text style={styles.emptyText}>No tienes bebés vinculados aún.</Text>
       ) : (
         bebes.map((vinculo) => {
-          const relacionBebe = vinculo.Bebe || vinculo.bebe;
+          const relacionBebe = vinculo.babies;
           const datosBebe = Array.isArray(relacionBebe) ? relacionBebe[0] : relacionBebe;
-          const nombreCompleto = datosBebe ? `${datosBebe.nombres_b} ${datosBebe.apellido_paterno_b}` : 'Bebé sin nombre';
-
+          const nombreCompleto = datosBebe
+            ? `${datosBebe.first_name} ${datosBebe.paternal_last_name}`
+            : 'Bebé sin nombre';
           return (
-            <View key={vinculo.id_bebe} style={styles.card}>
+            // Usamos baby_id como key
+            <View key={vinculo.baby_id} style={styles.card}>
               <View style={styles.cardHeader}>
                 <View style={styles.avatarPlaceholder}>
                   <Text style={styles.avatarText}>{nombreCompleto.charAt(0)}</Text>
@@ -94,14 +93,15 @@ export default function HomeScreen({ navigation }: any) {
               <View style={styles.actionRow}>
                 <TouchableOpacity
                   style={[styles.btnAction, styles.btnGreen]}
-                  onPress={() => navigation.navigate('RegistrarComida', { idBebe: vinculo.id_bebe })}
+                  // Mantenemos idBebe en la navegación para no romper las otras vistas
+                  onPress={() => navigation.navigate('RegistrarComida', { idBebe: vinculo.baby_id })}
                 >
                   <Text style={styles.btnTextWhite}>Registrar Comida</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[styles.btnAction, styles.btnBlue]}
-                  onPress={() => navigation.navigate('HistorialComidas', { idBebe: vinculo.id_bebe })}
+                  onPress={() => navigation.navigate('HistorialComidas', { idBebe: vinculo.baby_id })}
                 >
                   <Text style={styles.btnTextWhite}>Historial</Text>
                 </TouchableOpacity>
@@ -118,7 +118,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F6F8', paddingHorizontal: 20, paddingTop: 20 },
   centrado: { justifyContent: 'center', alignItems: 'center' },
 
-  // Estilos nuevos para el encabezado
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   headerTitle: { fontSize: 28, fontWeight: '800', color: '#2D3748' },
   btnLogout: { backgroundColor: '#E2E8F0', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },

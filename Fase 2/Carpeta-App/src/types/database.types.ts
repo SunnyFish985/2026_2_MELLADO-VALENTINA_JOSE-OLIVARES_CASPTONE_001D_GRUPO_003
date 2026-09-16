@@ -1,53 +1,102 @@
-// Nota: casi todos los campos de Usuario y Bebe son obligatorios ahora
-// en la base de datos (NOT NULL), así que aquí NO llevan "| null".
-// Esto ayuda a TypeScript a "recordarte" en el formulario que un campo
-// es obligatorio, porque si intentas guardar undefined, marcará error.
+export type Gender = 'female' | 'male' | 'other' | 'prefer_not_to_say';
+export type Sex = 'M' | 'F' | 'Other';
+export type UserRole = 'admin' | 'caregiver';
+export type PermissionLevel = 'full' | 'read_only';
+export type InviteStatus = 'pending' | 'accepted' | 'rejected';
+export type FoodType = 'breast' | 'formula' | 'homemade' | 'commercial';
+export type BreastSide = 'left' | 'right' | 'both';
 
-export type Genero = 'femenino' | 'masculino' | 'otro' | 'preferiria_no_decir';
-
-export interface Usuario {
-  id_usuario: string;
-  nombre_usuario: string;
-  nombres_u: string;
-  apellido_paterno_u: string;
-  apellido_materno_u: string;
-  fecha_nacimiento_u: string; // formato 'YYYY-MM-DD'
-  genero_u: Genero;
-  fecha_registro_u: string;
+export interface UserRow {
+  id: string;
+  username: string;
+  first_name: string;
+  paternal_last_name: string;
+  maternal_last_name: string;
+  birth_date: string; // YYYY-MM-DD
+  gender: Gender;
+  created_at: string;
 }
 
-export interface Bebe {
-  id_bebe: string;
-  nombres_b: string;
-  apellido_paterno_b: string;
-  apellido_materno_b: string;
-  fecha_nacimiento_b: string; // formato 'YYYY-MM-DD'
-  hora_nacimiento_b: string; // formato 'HH:MM'
-  peso_nacimiento_g_b: number;
-  altura_nacimiento_cm_b: number;
-  semanas_gestacion_b: number;
-  sexo_b: 'M' | 'F' | 'Otro';
+export interface BabyRow {
+  id: string;
+  first_name: string;
+  paternal_last_name: string;
+  maternal_last_name: string;
+  birth_date: string; // YYYY-MM-DD
+  birth_time: string; // HH:MM
+  birth_weight_g: number;
+  birth_height_cm: number;
+  gestation_weeks: number;
+  sex: Sex;
 }
 
-export interface UsuarioBebe {
-  id_usuario_bebe: string;
-  id_usuario: string;
-  id_bebe: string;
-  rol: 'administrador' | 'cuidador';
-  nivel_permiso: 'completo' | 'lectura';
-  codigo_invitacion: string | null;
-  estado_invitacion: 'pendiente' | 'aceptada';
+export interface UserBabyRow {
+  id: string;
+  user_id: string;
+  baby_id: string;
+  role: UserRole;
+  permission_level: PermissionLevel;
+  invite_code: string | null;
+  invite_status: InviteStatus;
 }
 
-export interface RegistroComida {
-  id_comida: string;
-  id_bebe: string;
-  id_usuario: string;
-  tipo_comida: 'pecho' | 'formula' | 'casera' | 'industrial';
-  fecha_hora_comida: string; // ISO string, ej. '2026-09-10T14:30:00Z'
-  cantidad_comida: number | null;
-  lado_pecho: 'izquierdo' | 'derecho' | 'ambos' | null;
-  ingredientes: string | null;
-  marca: string | null;
-  numero_lote: string | null;
+export interface FoodRecordRow {
+  id: string;
+  baby_id: string;
+  user_id: string;
+  food_type: FoodType;
+  recorded_at: string;
+  amount: number | null;
+  breast_side: BreastSide | null;
+  ingredients: string | null;
+  brand: string | null;
+  batch_number: string | null;
+}
+
+
+export interface User {
+  id: string;
+  username: string;
+  firstName: string;
+  paternalLastName: string;
+  maternalLastName: string;
+  birthDate: string;
+  gender: Gender;
+  createdAt: string;
+}
+
+export interface Baby {
+  id: string;
+  firstName: string;
+  paternalLastName: string;
+  maternalLastName: string;
+  birthDate: string;
+  birthTime: string;
+  birthWeightG: number;
+  birthHeightCm: number;
+  gestationWeeks: number;
+  sex: Sex;
+}
+
+export interface UserBaby {
+  id: string;
+  userId: string;
+  babyId: string;
+  role: UserRole;
+  permissionLevel: PermissionLevel;
+  inviteCode: string | null;
+  inviteStatus: InviteStatus;
+}
+
+export interface FoodRecord {
+  id: string;
+  babyId: string;
+  userId: string;
+  foodType: FoodType;
+  recordedAt: string;
+  amount: number | null;
+  breastSide: BreastSide | null;
+  ingredients: string | null;
+  brand: string | null;
+  batchNumber: string | null;
 }
