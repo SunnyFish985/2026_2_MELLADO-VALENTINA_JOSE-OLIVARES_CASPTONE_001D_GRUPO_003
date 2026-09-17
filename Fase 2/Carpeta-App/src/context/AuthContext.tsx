@@ -2,20 +2,20 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
-const AuthContext = createContext<{ session: Session | null; cargando: boolean }>({
+const AuthContext = createContext<{ session: Session | null; loading: boolean }>({
   session: null,
-  cargando: true,
+  loading: true,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [cargando, setCargando] = useState(true);
+  const [loading, setloading] = useState(true);
 
   useEffect(() => {
     // 1. Al abrir la app, revisamos si ya hay una sesión guardada
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setCargando(false);
+      setloading(false);
     });
 
     // 2. Nos "suscribimos" a cambios: login, logout, refresh de token.
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ session, cargando }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ session, loading }}>{children}</AuthContext.Provider>
   );
 }
 

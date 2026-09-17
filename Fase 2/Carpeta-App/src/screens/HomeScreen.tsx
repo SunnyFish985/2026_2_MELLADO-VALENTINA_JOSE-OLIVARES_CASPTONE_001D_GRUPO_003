@@ -5,11 +5,11 @@ import { supabase } from '../lib/supabase';
 import { logout } from '../services/authService';
 
 export default function HomeScreen({ navigation }: any) {
-  const [bebes, setBebes] = useState<any[]>([]);
-  const [cargando, setCargando] = useState(true);
+  const [babies, setBabies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function cargarBebes() {
+    async function loadBabies() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -21,22 +21,22 @@ export default function HomeScreen({ navigation }: any) {
           .eq('user_id', user.id);
 
         if (error) throw error;
-        setBebes(data || []);
+        setBabies(data || []);
       } catch (e) {
         console.error("Error al cargar bebés:", e);
       } finally {
-        setCargando(false);
+        setLoading(false);
       }
     }
 
     const unsubscribe = navigation.addListener('focus', () => {
-      cargarBebes();
+      loadBabies();
     });
 
     return unsubscribe;
   }, [navigation]);
 
-  const handleCerrarSesion = async () => {
+  const handleLogOut = async () => {
     try {
       await logout();
     } catch (error: any) {
@@ -44,7 +44,7 @@ export default function HomeScreen({ navigation }: any) {
     }
   };
 
-  if (cargando) {
+  if (loading) {
     return (
       <View style={[styles.container, styles.centrado]}>
         <ActivityIndicator size="large" color="#FF7A8A" />
@@ -56,7 +56,7 @@ export default function HomeScreen({ navigation }: any) {
     <SafeAreaView style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>Panel Principal</Text>
-        <TouchableOpacity style={styles.btnLogout} onPress={handleCerrarSesion}>
+        <TouchableOpacity style={styles.btnLogout} onPress={handleLogOut}>
           <Text style={styles.btnLogoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
       </View>
@@ -64,25 +64,25 @@ export default function HomeScreen({ navigation }: any) {
       <TouchableOpacity
         style={styles.btnPrimary}
         activeOpacity={0.8}
-        onPress={() => navigation.navigate('CrearBebe')}
+        onPress={() => navigation.navigate('CreateBaby')}
       >
         <Text style={styles.btnTextWhite}>+ Crear Nuevo Bebé</Text>
       </TouchableOpacity>
 
       <Text style={styles.sectionTitle}>Tus Bebés Vinculados</Text>
 
-      {bebes.length === 0 ? (
+      {babies.length === 0 ? (
         <Text style={styles.emptyText}>No tienes bebés vinculados aún.</Text>
       ) : (
-        bebes.map((vinculo) => {
-          const relacionBebe = vinculo.babies;
+        babies.map((bond) => {
+          const relacionBebe = bond.babies;
           const datosBebe = Array.isArray(relacionBebe) ? relacionBebe[0] : relacionBebe;
           const nombreCompleto = datosBebe
             ? `${datosBebe.first_name} ${datosBebe.paternal_last_name}`
             : 'Bebé sin nombre';
           return (
             // Usamos baby_id como key
-            <View key={vinculo.baby_id} style={styles.card}>
+            <View key={bond.baby_id} style={styles.card}>
               <View style={styles.cardHeader}>
                 <View style={styles.avatarPlaceholder}>
                   <Text style={styles.avatarText}>{nombreCompleto.charAt(0)}</Text>
@@ -94,14 +94,14 @@ export default function HomeScreen({ navigation }: any) {
                 <TouchableOpacity
                   style={[styles.btnAction, styles.btnGreen]}
                   // Mantenemos idBebe en la navegación para no romper las otras vistas
-                  onPress={() => navigation.navigate('RegistrarComida', { idBebe: vinculo.baby_id })}
+                  onPress={() => navigation.navigate('RecordFood', { idBebe: bond.baby_id })}
                 >
                   <Text style={styles.btnTextWhite}>Registrar Comida</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[styles.btnAction, styles.btnBlue]}
-                  onPress={() => navigation.navigate('HistorialComidas', { idBebe: vinculo.baby_id })}
+                  onPress={() => navigation.navigate('FoodHistory', { idBebe: bond.baby_id })}
                 >
                   <Text style={styles.btnTextWhite}>Historial</Text>
                 </TouchableOpacity>

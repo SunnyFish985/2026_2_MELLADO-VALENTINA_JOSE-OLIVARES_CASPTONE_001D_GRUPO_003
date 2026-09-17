@@ -7,27 +7,27 @@ import { getFoodHistory } from '../services/foodRecordService';
 export default function FoodHistoryScreen({ route }: any) {
   // Mantenemos idBebe porque así lo debe estar enviando tu navegación actual
   const { idBebe } = route.params;
-  const [comidas, setComidas] = useState<any[]>([]);
-  const [cargando, setCargando] = useState(true);
+  const [foods, setFoods] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    async function cargarHistorial() {
+    async function loadHistory() {
       try {
         // Llamamos al nuevo servicio
         const datos = await getFoodHistory(idBebe);
-        setComidas(datos || []);
+        setFoods(datos || []);
       } catch (e: any) {
         setError(e.message);
       } finally {
-        setCargando(false);
+        setLoading(false);
       }
     }
-    cargarHistorial();
+    loadHistory();
   }, [idBebe]);
 
   // Diccionarios para traducir la vista del usuario
-  const traducirTipoComida = (tipo: string) => {
+  const foodTypeTranslation = (tipo: string) => {
     const diccionario: Record<string, string> = {
       breast: 'PECHO',
       formula: 'FÓRMULA',
@@ -37,7 +37,7 @@ export default function FoodHistoryScreen({ route }: any) {
     return diccionario[tipo] || tipo.toUpperCase();
   };
 
-  const traducirLadoPecho = (lado: string) => {
+  const nippleSideTranslation = (lado: string) => {
     const diccionario: Record<string, string> = {
       left: 'Izquierdo',
       right: 'Derecho',
@@ -57,7 +57,7 @@ export default function FoodHistoryScreen({ route }: any) {
         <View style={styles.cardHeader}>
           <View style={styles.badgeTipo}>
             {/* Traducimos el food_type para la UI */}
-            <Text style={styles.badgeText}>{traducirTipoComida(item.food_type)}</Text>
+            <Text style={styles.badgeText}>{foodTypeTranslation(item.food_type)}</Text>
           </View>
           <View style={styles.fechaContainer}>
             <Text style={styles.textoFecha}>{fechaFormateada}</Text>
@@ -74,7 +74,7 @@ export default function FoodHistoryScreen({ route }: any) {
           ) : null}
           {item.breast_side ? (
             <Text style={styles.detalleTexto}>
-              <Text style={styles.detalleLabel}>Lado: </Text>{traducirLadoPecho(item.breast_side)}
+              <Text style={styles.detalleLabel}>Lado: </Text>{nippleSideTranslation(item.breast_side)}
             </Text>
           ) : null}
           {item.ingredients ? (
@@ -92,7 +92,7 @@ export default function FoodHistoryScreen({ route }: any) {
     );
   };
 
-  if (cargando) {
+  if (loading) {
     return (
       <View style={[styles.container, styles.centrado]}>
         <ActivityIndicator size="large" color="#4299E1" />
@@ -106,7 +106,7 @@ export default function FoodHistoryScreen({ route }: any) {
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <FlatList
         contentContainerStyle={styles.listContainer}
-        data={comidas}
+        data={foods}
         // La llave primaria ahora es simplemente 'id'
         keyExtractor={(item) => item.id}
         renderItem={renderItem}

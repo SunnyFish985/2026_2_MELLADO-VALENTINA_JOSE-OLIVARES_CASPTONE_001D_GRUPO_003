@@ -7,45 +7,45 @@ import { createFoodRecord } from '../services/foodRecordService'; // Asegúrate 
 export default function FoodRecordScreen({ route, navigation }: any) {
   const { idBebe } = route.params;
 
-  const [tipo, setTipo] = useState<'breast' | 'formula' | 'homemade' | 'commercial'>('breast');
-  const [cantidad, setCantidad] = useState('');
-  const [lado, setLado] = useState<'left' | 'right' | 'both' | undefined>(undefined);
-  const [ingredientes, setIngredientes] = useState('');
-  const [marca, setMarca] = useState('');
-  const [numeroLote, setNumeroLote] = useState('');
+  const [type, setType] = useState<'breast' | 'formula' | 'homemade' | 'commercial'>('breast');
+  const [amount, setAmount] = useState('');
+  const [side, setSide] = useState<'left' | 'right' | 'both' | undefined>(undefined);
+  const [ingredients, setIngredients] = useState('');
+  const [brand, setBrand] = useState('');
+  const [batchNumber, setBatchNumber] = useState('');
 
-  const [fechaHora, setFechaHora] = useState(new Date());
-  const [modoPicker, setModoPicker] = useState<'date' | 'time'>('date');
-  const [mostrarPicker, setMostrarPicker] = useState(false);
+  const [dateTime, setDateTime] = useState(new Date());
+  const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
+  const [showPicker, setShowPicker] = useState(false);
 
-  const [cargando, setCargando] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const onChangeFecha = (event: any, selectedDate?: Date) => {
-    setMostrarPicker(false);
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    setShowPicker(false);
     if (event.type === 'set' && selectedDate) {
-      setFechaHora(selectedDate);
+      setDateTime(selectedDate);
     }
   };
 
-  const abrirPicker = (modo: 'date' | 'time') => {
-    setModoPicker(modo);
-    setMostrarPicker(true);
+  const openPicker = (modo: 'date' | 'time') => {
+    setPickerMode(modo);
+    setShowPicker(true);
   };
 
-  const guardarComida = async () => {
-    setCargando(true);
+  const saveFood = async () => {
+    setLoading(true);
     try {
-      const esFormulaOIndustrial = tipo === 'formula' || tipo === 'commercial';
+      const esFormulaOIndustrial = type === 'formula' || type === 'commercial';
 
       await createFoodRecord({
         babyId: idBebe,
-        foodType: tipo,
-        recordedAt: fechaHora.toISOString(),
-        amount: cantidad ? parseFloat(cantidad) : undefined,
-        breastSide: tipo === 'breast' ? lado : undefined,
-        ingredients: esFormulaOIndustrial ? ingredientes : undefined,
-        brand: esFormulaOIndustrial ? marca : undefined,
-        batchNumber: esFormulaOIndustrial ? numeroLote : undefined,
+        foodType: type,
+        recordedAt: dateTime.toISOString(),
+        amount: amount ? parseFloat(amount) : undefined,
+        breastSide: type === 'breast' ? side : undefined,
+        ingredients: esFormulaOIndustrial ? ingredients : undefined,
+        brand: esFormulaOIndustrial ? brand : undefined,
+        batchNumber: esFormulaOIndustrial ? batchNumber : undefined,
       });
 
       Alert.alert('Éxito', 'Comida registrada correctamente');
@@ -53,21 +53,21 @@ export default function FoodRecordScreen({ route, navigation }: any) {
     } catch (error: any) {
       Alert.alert('Error', error.message || 'No se pudo registrar la comida');
     } finally {
-      setCargando(false);
+      setLoading(false);
     }
   };
 
-  const mostrarCamposExtra = tipo === 'formula' || tipo === 'commercial';
+  const showExtraFields = type === 'formula' || type === 'commercial';
 
   // Opciones visuales traducidas al inglés interno
-  const opcionesComida: { key: 'breast' | 'formula' | 'homemade' | 'commercial'; label: string }[] = [
+  const foodOptions: { key: 'breast' | 'formula' | 'homemade' | 'commercial'; label: string }[] = [
     { key: 'breast', label: 'PECHO' },
     { key: 'formula', label: 'FÓRMULA' },
     { key: 'homemade', label: 'CASERA' },
     { key: 'commercial', label: 'INDUSTRIAL' },
   ];
 
-  const opcionesLado: { key: 'left' | 'right' | 'both'; label: string }[] = [
+  const sideOptions: { key: 'left' | 'right' | 'both'; label: string }[] = [
     { key: 'left', label: 'Izquierdo' },
     { key: 'right', label: 'Derecho' },
     { key: 'both', label: 'Ambos' },
@@ -79,14 +79,14 @@ export default function FoodRecordScreen({ route, navigation }: any) {
 
         <Text style={styles.label}>¿Qué comió?</Text>
         <View style={styles.rowTabs}>
-          {opcionesComida.map((opcion) => (
+          {foodOptions.map((option) => (
             <TouchableOpacity
-              key={opcion.key}
-              style={[styles.tabButton, tipo === opcion.key && styles.tabActive]}
-              onPress={() => setTipo(opcion.key)}
+              key={option.key}
+              style={[styles.tabButton, type === option.key && styles.tabActive]}
+              onPress={() => setType(option.key)}
             >
-              <Text style={[styles.tabText, tipo === opcion.key && styles.tabTextActive, { fontSize: 12 }]}>
-                {opcion.label}
+              <Text style={[styles.tabText, type === option.key && styles.tabTextActive, { fontSize: 12 }]}>
+                {option.label}
               </Text>
             </TouchableOpacity>
           ))}
@@ -94,37 +94,37 @@ export default function FoodRecordScreen({ route, navigation }: any) {
 
         <Text style={styles.label}>Fecha y Hora</Text>
         <View style={styles.dateRow}>
-          <TouchableOpacity style={styles.dateBtn} onPress={() => abrirPicker('date')}>
-            <Text style={styles.dateBtnText}>{fechaHora.toLocaleDateString()}</Text>
+          <TouchableOpacity style={styles.dateBtn} onPress={() => openPicker('date')}>
+            <Text style={styles.dateBtnText}>{dateTime.toLocaleDateString()}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.dateBtn} onPress={() => abrirPicker('time')}>
+          <TouchableOpacity style={styles.dateBtn} onPress={() => openPicker('time')}>
             <Text style={styles.dateBtnText}>
-              {fechaHora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {dateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </TouchableOpacity>
         </View>
 
-        {mostrarPicker && (
+        {showPicker && (
           <DateTimePicker
-            value={fechaHora}
-            mode={modoPicker}
+            value={dateTime}
+            mode={pickerMode}
             is24Hour={true}
-            onChange={onChangeFecha}
+            onChange={onChangeDate}
           />
         )}
 
-        {tipo === 'breast' && (
+        {type === 'breast' && (
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Lado del pecho</Text>
             <View style={styles.rowTabs}>
-              {opcionesLado.map((opc) => (
+              {sideOptions.map((optn) => (
                 <TouchableOpacity
-                  key={opc.key}
-                  style={[styles.tabButton, lado === opc.key && styles.tabActive]}
-                  onPress={() => setLado(opc.key)}
+                  key={optn.key}
+                  style={[styles.tabButton, side === optn.key && styles.tabActive]}
+                  onPress={() => setSide(optn.key)}
                 >
-                  <Text style={[styles.tabText, lado === opc.key && styles.tabTextActive]}>
-                    {opc.label}
+                  <Text style={[styles.tabText, side === optn.key && styles.tabTextActive]}>
+                    {optn.label}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -132,28 +132,28 @@ export default function FoodRecordScreen({ route, navigation }: any) {
           </View>
         )}
 
-        {tipo !== 'breast' && (
+        {type !== 'breast' && (
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Cantidad (ml o gramos)</Text>
             <TextInput
               style={styles.input}
               placeholder="Ej. 120"
               keyboardType="numeric"
-              value={cantidad}
-              onChangeText={setCantidad}
+              value={amount}
+              onChangeText={setAmount}
             />
           </View>
         )}
 
-        {mostrarCamposExtra && (
+        {showExtraFields && (
           <>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Ingredientes</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Ej. Leche de vaca, Hierro"
-                value={ingredientes}
-                onChangeText={setIngredientes}
+                value={ingredients}
+                onChangeText={setIngredients}
               />
             </View>
 
@@ -162,8 +162,8 @@ export default function FoodRecordScreen({ route, navigation }: any) {
               <TextInput
                 style={styles.input}
                 placeholder="Ej. Nestlé, Enfamil"
-                value={marca}
-                onChangeText={setMarca}
+                value={brand}
+                onChangeText={setBrand}
               />
             </View>
 
@@ -172,8 +172,8 @@ export default function FoodRecordScreen({ route, navigation }: any) {
               <TextInput
                 style={styles.input}
                 placeholder="Ej. L-123456"
-                value={numeroLote}
-                onChangeText={setNumeroLote}
+                value={batchNumber}
+                onChangeText={setBatchNumber}
               />
             </View>
           </>
@@ -181,10 +181,10 @@ export default function FoodRecordScreen({ route, navigation }: any) {
 
         <TouchableOpacity
           style={styles.btnGuardar}
-          onPress={guardarComida}
-          disabled={cargando}
+          onPress={saveFood}
+          disabled={loading}
         >
-          {cargando ? (
+          {loading ? (
             <ActivityIndicator color="#FFF" />
           ) : (
             <Text style={styles.btnTextWhite}>Guardar Registro</Text>

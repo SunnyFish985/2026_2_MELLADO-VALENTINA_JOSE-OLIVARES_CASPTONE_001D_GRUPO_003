@@ -15,9 +15,9 @@ import FoodHistoryScreen from './src/screens/FoodHistoryScreen';
 const Stack = createNativeStackNavigator();
 
 function Navigation() {
-  const { session, cargando } = useAuth();
+  const { session, loading } = useAuth();
 
-  if (cargando) return null;
+  if (loading) return null;
 
   return (
     <NavigationContainer>
@@ -25,14 +25,14 @@ function Navigation() {
         {session ? (
           <>
             <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Inicio' }} />
-            <Stack.Screen name="CrearBebe" component={CreateBabyScreen} options={{ title: 'Crear bebé' }} />
-            <Stack.Screen name="RegistrarComida" component={FoodRecordScreen} options={{ title: 'Registrar comida' }} />
-            <Stack.Screen name="HistorialComidas" component={FoodHistoryScreen} options={{ title: 'Historial de Comidas' }} />
+            <Stack.Screen name="CreateBaby" component={CreateBabyScreen} options={{ title: 'Crear bebé' }} />
+            <Stack.Screen name="RecordFood" component={FoodRecordScreen} options={{ title: 'Registrar comida' }} />
+            <Stack.Screen name="FoodHistory" component={FoodHistoryScreen} options={{ title: 'Historial de Comidas' }} />
           </>
         ) : (
           <>
             <Stack.Screen name="Login" component={LogInScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="RegistrarUsuario" component={SignUpScreen} options={{ title: 'Crear cuenta' }} />
+            <Stack.Screen name="SignUp" component={SignUpScreen} options={{ title: 'Crear cuenta' }} />
           </>
         )}
       </Stack.Navigator>

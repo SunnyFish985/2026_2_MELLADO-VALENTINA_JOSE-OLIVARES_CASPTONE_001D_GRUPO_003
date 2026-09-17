@@ -25,29 +25,29 @@ export default function SignUpScreen({ navigation }: any) {
 
   const [birthDate, setBirthDate] = useState('');
 
-  const [fechaObj, setFechaObj] = useState(new Date());
-  const [mostrarPicker, setMostrarPicker] = useState(false);
+  const [dateObj, setDateObj] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
 
   const [gender, setGender] = useState<Gender>('prefer_not_to_say');
   const [error, setError] = useState('');
-  const [cargando, setCargando] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const onChangeFecha = (event: any, selectedDate?: Date) => {
-    setMostrarPicker(false);
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    setShowPicker(false);
 
-    const currentDate = selectedDate || (event instanceof Date ? event : fechaObj);
+    const currentDate = selectedDate || (event instanceof Date ? event : dateObj);
 
     if (currentDate && (event?.type === 'set' || !event?.type)) {
-      setFechaObj(currentDate);
+      setDateObj(currentDate);
 
-      const anio = currentDate.getFullYear();
-      const mes = String(currentDate.getMonth() + 1).padStart(2, '0');
-      const dia = String(currentDate.getDate()).padStart(2, '0');
-      setBirthDate(`${anio}-${mes}-${dia}`);
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDate.getDate()).padStart(2, '0');
+      setBirthDate(`${year}-${month}-${day}`);
     }
   };
 
-  async function handleRegistro() {
+  async function handleRegistry() {
     setError('');
 
     if (!email || !password || !confirmPassword || !username || !firstName || !paternalLastName || !maternalLastName || !birthDate) {
@@ -60,7 +60,7 @@ export default function SignUpScreen({ navigation }: any) {
       return;
     }
 
-    setCargando(true);
+    setLoading(true);
     try {
 
       await registerUser({
@@ -82,7 +82,7 @@ export default function SignUpScreen({ navigation }: any) {
         setError(e.message);
       }
     } finally {
-      setCargando(false);
+      setLoading(false);
     }
   }
 
@@ -107,18 +107,18 @@ export default function SignUpScreen({ navigation }: any) {
           <TextInput style={styles.input} placeholder="Apellido materno" value={maternalLastName} onChangeText={setMaternalLastName} />
 
           <Text style={styles.label}>Fecha de nacimiento</Text>
-          <TouchableOpacity style={styles.dateBtn} onPress={() => setMostrarPicker(true)}>
+          <TouchableOpacity style={styles.dateBtn} onPress={() => setShowPicker(true)}>
             <Text style={[styles.dateBtnText, !birthDate && { color: '#A0AEC0' }]}>
               {birthDate || 'Seleccionar fecha (YYYY-MM-DD)'}
             </Text>
           </TouchableOpacity>
 
-          {mostrarPicker && (
+          {showPicker && (
             <DateTimePicker
-              value={fechaObj}
+              value={dateObj}
               mode="date"
               display="default"
-              onValueChange={onChangeFecha}
+              onValueChange={onChangeDate}
               maximumDate={new Date()}
             />
           )}
@@ -143,10 +143,10 @@ export default function SignUpScreen({ navigation }: any) {
 
         <TouchableOpacity
           style={styles.btnGuardar}
-          onPress={handleRegistro}
-          disabled={cargando}
+          onPress={handleRegistry}
+          disabled={loading}
         >
-          {cargando ? (
+          {loading ? (
             <ActivityIndicator color="#FFF" />
           ) : (
             <Text style={styles.btnTextWhite}>Completar Registro</Text>

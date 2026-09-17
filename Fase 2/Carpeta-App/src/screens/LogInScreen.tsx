@@ -77,7 +77,7 @@ export default function LogInScreen({ navigation }: any) {
 
           <View style={styles.footerRow}>
             <Text style={styles.footerText}>¿No tienes una cuenta? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('RegistrarUsuario')}>
+            <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
               <Text style={styles.footerLink}>Regístrate aquí</Text>
             </TouchableOpacity>
           </View>
