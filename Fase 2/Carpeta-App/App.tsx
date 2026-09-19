@@ -11,6 +11,13 @@ import CreateBabyScreen from './src/screens/CreateBabyScreen';
 //import UnirseCodigoScreen from './src/screens/UnirseCodigoScreen';
 import FoodRecordScreen from './src/screens/FoodRecordScreen';
 import FoodHistoryScreen from './src/screens/FoodHistoryScreen';
+import DiaperRecordScreen from './src/screens/DiaperRecordScreen';
+import DiaperHistoryScreen from './src/screens/DiaperHistoryScreen';
+import SleepRecordScreen from './src/screens/SleepRecordScreen';
+import SleepHistoryScreen from './src/screens/SleepHistoryScreen';
+import MedicationRecordScreen from './src/screens/MedicationRecordScreen';
+import MedicationHistoryScreen from './src/screens/MedicationHistoryScreen';
+import MedicationLogScreen from './src/screens/MedicationLogScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,9 +32,16 @@ function Navigation() {
         {session ? (
           <>
             <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Inicio' }} />
-            <Stack.Screen name="CreateBaby" component={CreateBabyScreen} options={{ title: 'Crear bebé' }} />
-            <Stack.Screen name="RecordFood" component={FoodRecordScreen} options={{ title: 'Registrar comida' }} />
+            <Stack.Screen name="CreateBaby" component={CreateBabyScreen} options={{ title: 'Crear Bebé' }} />
+            <Stack.Screen name="FoodRecord" component={FoodRecordScreen} options={{ title: 'Registrar Comida' }} />
             <Stack.Screen name="FoodHistory" component={FoodHistoryScreen} options={{ title: 'Historial de Comidas' }} />
+            <Stack.Screen name="DiaperRecord" component={DiaperRecordScreen} options={{ title: 'Registrar Pañal' }} />
+            <Stack.Screen name="DiaperHistory" component={DiaperHistoryScreen} options={{ title: 'Historial de Pañales' }} />
+            <Stack.Screen name="SleepRecord" component={SleepRecordScreen} options={{ title: 'Registrar Sueño' }} />
+            <Stack.Screen name="SleepHistory" component={SleepHistoryScreen} options={{ title: 'Historial de Sueño' }} />
+            <Stack.Screen name="MedicationRecord" component={MedicationRecordScreen} options={{ title: 'Registrar Medicamento' }} />
+            <Stack.Screen name="MedicationHistory" component={MedicationHistoryScreen} options={{ title: 'Medicamentos Registrados' }} />
+            <Stack.Screen name="MedicationLog" component={MedicationLogScreen} options={{ title: 'Tomas del Medicamento' }} />
           </>
         ) : (
           <>

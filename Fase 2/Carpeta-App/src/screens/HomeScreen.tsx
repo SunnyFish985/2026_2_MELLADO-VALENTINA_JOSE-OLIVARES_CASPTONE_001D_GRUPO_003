@@ -94,7 +94,7 @@ export default function HomeScreen({ navigation }: any) {
                 <TouchableOpacity
                   style={[styles.btnAction, styles.btnGreen]}
                   // Mantenemos idBebe en la navegación para no romper las otras vistas
-                  onPress={() => navigation.navigate('RecordFood', { idBebe: bond.baby_id })}
+                  onPress={() => navigation.navigate('FoodRecord', { idBebe: bond.baby_id })}
                 >
                   <Text style={styles.btnTextWhite}>Registrar Comida</Text>
                 </TouchableOpacity>
@@ -103,9 +103,67 @@ export default function HomeScreen({ navigation }: any) {
                   style={[styles.btnAction, styles.btnBlue]}
                   onPress={() => navigation.navigate('FoodHistory', { idBebe: bond.baby_id })}
                 >
-                  <Text style={styles.btnTextWhite}>Historial</Text>
+                  <Text style={styles.btnTextWhite}>Ver Comidas</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* <View style={[styles.actionRow, styles.actionRowSpacing]}>
+                <TouchableOpacity
+                  style={[styles.btnAction, styles.btnPurple]}
+                  onPress={() => navigation.navigate('DiaperRecord', { idBebe: bond.baby_id })}
+                >
+                  <Text style={styles.btnTextWhite}>Registrar Pañal</Text>
+                </TouchableOpacity>
+              </View> */}
+
+              <View style={[styles.actionRow, styles.actionRowSpacing]}>
+                <TouchableOpacity
+                  style={[styles.btnAction, styles.btnPurple]}
+                  onPress={() => navigation.navigate('DiaperRecord', { idBebe: bond.baby_id })}
+                >
+                  <Text style={styles.btnTextWhite}>Registrar Pañal</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.btnAction, styles.btnIndigo]}
+                  onPress={() => navigation.navigate('DiaperHistory', { idBebe: bond.baby_id })}
+                >
+                  <Text style={styles.btnTextWhite}>Ver Pañales</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={[styles.actionRow, styles.actionRowSpacing]}>
+                <TouchableOpacity
+                  style={[styles.btnAction, styles.btnNight]}
+                  onPress={() => navigation.navigate('SleepRecord', { idBebe: bond.baby_id })}
+                >
+                  <Text style={styles.btnTextWhite}>Registrar Sueño</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.btnAction, styles.btnNavy]}
+                  onPress={() => navigation.navigate('SleepHistory', { idBebe: bond.baby_id })}
+                >
+                  <Text style={styles.btnTextWhite}>Ver Sueños</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={[styles.actionRow, styles.actionRowSpacing]}>
+                <TouchableOpacity
+                  style={[styles.btnAction, styles.btnMedicine]}
+                  onPress={() => navigation.navigate('MedicationRecord', { idBebe: bond.baby_id })}
+                >
+                  <Text style={styles.btnTextWhite}>Registrar Medicamento</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.btnAction, styles.btnMedicineHistory]}
+                  onPress={() => navigation.navigate('MedicationHistory', { idBebe: bond.baby_id })}
+                >
+                  <Text style={styles.btnTextWhite}>Ver Medicamentos</Text>
+                </TouchableOpacity>
+              </View>
+
             </View>
           );
         })
@@ -146,6 +204,10 @@ const styles = StyleSheet.create({
   bebeName: { fontSize: 20, fontWeight: '600', color: '#2D3748' },
 
   actionRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
+
+  actionRowSpacing: { marginTop: 10 },
+  btnPurple: { backgroundColor: '#9F7AEA' }, // Un morado suave que combina con los otros tonos pastel
+
   btnAction: { flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   btnPrimary: {
     backgroundColor: '#FF7A8A', paddingVertical: 16, borderRadius: 12,
@@ -154,5 +216,14 @@ const styles = StyleSheet.create({
   },
   btnGreen: { backgroundColor: '#38B2AC' },
   btnBlue: { backgroundColor: '#4299E1' },
-  btnTextWhite: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' }
+
+  btnIndigo: { backgroundColor: '#667EEA' }, // Índigo complementario
+
+  btnTextWhite: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
+  
+  // 👇 NUEVO: Estilos para botones de Sueño
+  btnNight: { backgroundColor: '#2C5282' },  // Azul noche
+  btnNavy: { backgroundColor: '#4A5568' },   // Gris pizarra azulado
+  btnMedicine: { backgroundColor: '#319795' },
+  btnMedicineHistory: { backgroundColor: '#285E61' },
 });

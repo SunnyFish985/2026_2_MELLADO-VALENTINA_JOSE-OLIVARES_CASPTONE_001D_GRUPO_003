@@ -27,7 +27,9 @@ export async function createFoodRecord(data: FoodRecordData) {
     recorded_at: data.recordedAt,
   };
 
-  const { error } = await supabase.from('food_records').insert(dbPayload);
+  const { error } = await supabase
+    .from('food_records')
+    .insert(dbPayload);
 
   if (error) throw error;
 }
