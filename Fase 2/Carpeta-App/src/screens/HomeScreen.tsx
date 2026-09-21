@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../lib/supabase';
 import { logout } from '../services/authService';
@@ -54,6 +54,9 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}>
       <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>Panel Principal</Text>
         <TouchableOpacity style={styles.btnLogout} onPress={handleLogOut}>
@@ -168,7 +171,8 @@ export default function HomeScreen({ navigation }: any) {
           );
         })
       )}
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
   );
 }
 
@@ -220,10 +224,14 @@ const styles = StyleSheet.create({
   btnIndigo: { backgroundColor: '#667EEA' }, // Índigo complementario
 
   btnTextWhite: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
-  
+
   // 👇 NUEVO: Estilos para botones de Sueño
   btnNight: { backgroundColor: '#2C5282' },  // Azul noche
   btnNavy: { backgroundColor: '#4A5568' },   // Gris pizarra azulado
   btnMedicine: { backgroundColor: '#319795' },
   btnMedicineHistory: { backgroundColor: '#285E61' },
+
+  scrollContent: {
+    paddingBottom: 30,
+  },
 });

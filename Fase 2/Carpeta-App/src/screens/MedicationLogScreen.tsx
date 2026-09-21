@@ -11,8 +11,11 @@ const STATUS_OPTIONS: { value: MedicationLogStatus; label: string }[] = [
 ];
 
 export default function MedicationLogScreen({ route }: any) {
-  const { medication } = route.params;
-  const [scheduledAt, setScheduledAt] = useState(new Date());
+  const { medication, scheduledAt: initialScheduledAt } = route.params;
+  const [scheduledAt, setScheduledAt] = useState(
+    initialScheduledAt ? new Date(initialScheduledAt) : new Date()
+  );
+  const hasScheduledTime = !!initialScheduledAt;
   const [status, setStatus] = useState<MedicationLogStatus>('administered');
   const [notes, setNotes] = useState('');
   const [showPicker, setShowPicker] = useState(false);
@@ -67,21 +70,54 @@ export default function MedicationLogScreen({ route }: any) {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Registrar toma</Text>
           <Text style={styles.label}>Cuándo correspondía</Text>
-          <TouchableOpacity style={styles.dateButton} onPress={() => { setPickerMode('date'); setShowPicker(true); }}>
-            <Text style={styles.dateText}>{scheduledAt.toLocaleString()}</Text>
-          </TouchableOpacity>
-          {showPicker && <DateTimePicker value={scheduledAt} mode={pickerMode} onChange={(event, date) => {
-            if (event.type !== 'set' || !date) {
-              setShowPicker(false);
-              return;
-            }
-            setScheduledAt(date);
-            if (pickerMode === 'date') {
-              setPickerMode('time');
-              return;
-            }
-            setShowPicker(false);
-          }} />}
+
+          {hasScheduledTime ? (
+            <View style={styles.scheduledInfo}>
+              <Text style={styles.scheduledText}>
+                {scheduledAt.toLocaleString()}
+              </Text>
+
+              <Text style={styles.scheduledHint}>
+                Horario definido por el recordatorio
+              </Text>
+            </View>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => {
+                  setPickerMode('date');
+                  setShowPicker(true);
+                }}
+              >
+                <Text style={styles.dateText}>
+                  {scheduledAt.toLocaleString()}
+                </Text>
+              </TouchableOpacity>
+
+              {showPicker && (
+                <DateTimePicker
+                  value={scheduledAt}
+                  mode={pickerMode}
+                  onChange={(event, date) => {
+                    if (event.type !== 'set' || !date) {
+                      setShowPicker(false);
+                      return;
+                    }
+
+                    setScheduledAt(date);
+
+                    if (pickerMode === 'date') {
+                      setPickerMode('time');
+                      return;
+                    }
+
+                    setShowPicker(false);
+                  }}
+                />
+              )}
+            </>
+          )}
 
           <Text style={styles.label}>Estado</Text>
           <View style={styles.statusRow}>
@@ -145,4 +181,23 @@ const styles = StyleSheet.create({
   logTaken: { color: '#718096', fontSize: 12 },
   logNotes: { color: '#4A5568', fontSize: 13, marginTop: 4 },
   logStatus: { color: '#2C5282', fontWeight: '700', fontSize: 12, textAlign: 'right' },
+  scheduledInfo: {
+    backgroundColor: '#E6FFFA',
+    borderWidth: 1,
+    borderColor: '#B2F5EA',
+    borderRadius: 10,
+    padding: 14,
+  },
+
+  scheduledText: {
+    color: '#234E52',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  scheduledHint: {
+    color: '#4A5568',
+    fontSize: 12,
+    marginTop: 5,
+  },
 });

@@ -2,18 +2,24 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getSleepHistory } from '../services/sleepRecordService';
+import { getSleepAlerts, SleepAlert } from '../services/sleepAlertService';
+import SleepAlertCard from '../components/SleepAlertCard';
 
 export default function SleepHistoryScreen({ route }: any) {
   const { idBebe } = route.params;
   const [sleeps, setSleeps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [sleepAlert, setSleepAlert] = useState<SleepAlert | null>(null);
 
   useEffect(() => {
     async function loadHistory() {
       try {
         const datos = await getSleepHistory(idBebe);
         setSleeps(datos || []);
+
+        const alerts = await getSleepAlerts(idBebe);
+        setSleepAlert(alerts[0] || null);
       } catch (e: any) {
         setError(e.message);
       } finally {
@@ -65,7 +71,7 @@ export default function SleepHistoryScreen({ route }: any) {
     // Convertimos los TIMESTAMPTZ de la DB a objetos Date de JS
     const startDate = new Date(item.start_time);
     const endDate = new Date(item.end_time);
-    
+
     const fecha = startDate.toLocaleDateString();
     const horaInicio = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const horaFin = endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -88,23 +94,23 @@ export default function SleepHistoryScreen({ route }: any) {
           <Text style={styles.detalleTexto}>
             <Text style={styles.detalleLabel}>Duración: </Text>{formatDuration(item.duration_minutes)}
           </Text>
-          
+
           {item.sleep_location && (
             <Text style={styles.detalleTexto}>
               <Text style={styles.detalleLabel}>Lugar: </Text>{translateLocation(item.sleep_location)}
             </Text>
           )}
-          
+
           {item.sleep_quality && (
             <Text style={styles.detalleTexto}>
               <Text style={styles.detalleLabel}>Calidad: </Text>{translateQuality(item.sleep_quality)}
             </Text>
           )}
-          
+
           <Text style={styles.detalleTexto}>
             <Text style={styles.detalleLabel}>Despertares: </Text>{item.interruptions_count || 0}
           </Text>
-          
+
           {item.notes ? (
             <Text style={styles.detalleTexto}>
               <Text style={styles.detalleLabel}>Notas: </Text>{item.notes}
@@ -130,10 +136,22 @@ export default function SleepHistoryScreen({ route }: any) {
       <FlatList
         contentContainerStyle={styles.listContainer}
         data={sleeps}
-        // Aplicamos la corrección para evitar el warning de React Native
-        keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
+        keyExtractor={(item, index) =>
+          item.id ? item.id.toString() : index.toString()
+        }
         renderItem={renderItem}
-        ListEmptyComponent={<Text style={styles.vacio}>Aún no hay registros de sueño.</Text>}
+
+        ListHeaderComponent={
+          sleepAlert ? (
+            <SleepAlertCard alert={sleepAlert} />
+          ) : null
+        }
+
+        ListEmptyComponent={
+          <Text style={styles.vacio}>
+            Aún no hay registros de sueño.
+          </Text>
+        }
       />
     </SafeAreaView>
   );
@@ -153,12 +171,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     marginBottom: 12, borderBottomWidth: 1, borderBottomColor: '#EDF2F7', paddingBottom: 12,
   },
-  
+
   badgeTipo: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   badgeText: { fontSize: 12, fontWeight: 'bold' },
   badgeNap: { backgroundColor: '#EBF8FF' }, // Celeste para siestas
   textNap: { color: '#3182CE', fontWeight: 'bold', fontSize: 12 },
-  
+
   badgeNight: { backgroundColor: '#2C5282' }, // Azul oscuro para noche
   textNight: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 12 },
 
@@ -171,5 +189,5 @@ const styles = StyleSheet.create({
   detalleLabel: { fontWeight: '600', color: '#718096' },
 
   error: { color: '#E53E3E', textAlign: 'center', marginTop: 20, fontSize: 16 },
-  vacio: { textAlign: 'center', marginTop: 40, color: '#A0AEC0', fontSize: 16 }
+  vacio: { textAlign: 'center', marginTop: 40, color: '#A0AEC0', fontSize: 16 },
 });

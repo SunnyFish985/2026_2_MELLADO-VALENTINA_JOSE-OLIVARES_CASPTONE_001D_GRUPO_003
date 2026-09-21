@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getMedications } from '../services/medicationService';
+import { getMedicationReminders } from '../services/medicationReminderService';
 
 const formatDate = (value: string) => new Date(value).toLocaleString();
 
@@ -10,12 +11,20 @@ export default function MedicationHistoryScreen({ route, navigation }: any) {
   const [medications, setMedications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reminders, setReminders] = useState<any[]>([]);
 
   const loadMedications = useCallback(async () => {
     setLoading(true);
     setError('');
+
     try {
-      setMedications(await getMedications(idBebe));
+      const loadedMedications = await getMedications(idBebe);
+
+      setMedications(loadedMedications);
+
+      const loadedReminders = await getMedicationReminders(loadedMedications);
+
+      setReminders(loadedReminders);
     } catch (e: any) {
       setError(e.message || 'No se pudieron cargar los medicamentos');
     } finally {
@@ -60,12 +69,63 @@ export default function MedicationHistoryScreen({ route, navigation }: any) {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      <View style={styles.reminderCard}>
+        <Text style={styles.reminderTitle}>Prueba de recordatorios</Text>
+
+        {reminders.length === 0 ? (
+          <Text style={styles.empty}>No hay recordatorios calculados.</Text>
+        ) : (
+          reminders.map((reminder) => (
+            <View key={reminder.medicationId} style={styles.reminderItem}>
+              <Text style={styles.reminderName}>
+                {reminder.medicationName}
+              </Text>
+
+              <Text style={styles.reminderDetail}>
+                Dosis: {reminder.doseAmount} {reminder.doseUnit}
+              </Text>
+
+              <Text style={styles.reminderDetail}>
+                Programada:{' '}
+                {new Date(reminder.scheduledAt).toLocaleString()}
+              </Text>
+
+              <Text style={styles.reminderDetail}>
+                Estado: {reminder.isOverdue ? 'PENDIENTE' : 'PRÓXIMA'}
+              </Text>
+
+              <TouchableOpacity
+                style={styles.reminderButton}
+                onPress={() =>
+                  navigation.navigate('MedicationLog', {
+                    medication: medications.find(
+                      (medication) =>
+                        medication.id === reminder.medicationId
+                    ),
+                    scheduledAt: reminder.scheduledAt,
+                  })
+                }
+              >
+                <Text style={styles.reminderButtonText}>
+                  Registrar esta dosis
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))
+        )}
+      </View>
+
       <FlatList
         data={medications}
         renderItem={renderMedication}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<Text style={styles.empty}>Aún no hay medicamentos registrados.</Text>}
+        ListEmptyComponent={
+          <Text style={styles.empty}>
+            Aún no hay medicamentos registrados.
+          </Text>
+        }
       />
     </SafeAreaView>
   );
@@ -86,4 +146,53 @@ const styles = StyleSheet.create({
   buttonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
   empty: { textAlign: 'center', color: '#A0AEC0', fontSize: 16, marginTop: 40 },
   error: { color: '#E53E3E', textAlign: 'center', margin: 20 },
+  reminderCard: {
+    backgroundColor: '#E6FFFA',
+    borderRadius: 16,
+    padding: 16,
+    margin: 20,
+    marginBottom: 0,
+    elevation: 3,
+  },
+
+  reminderTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#234E52',
+    marginBottom: 12,
+  },
+
+  reminderItem: {
+    borderTopWidth: 1,
+    borderTopColor: '#B2F5EA',
+    paddingTop: 12,
+    marginTop: 8,
+  },
+
+  reminderName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#285E61',
+    marginBottom: 4,
+  },
+
+  reminderDetail: {
+    fontSize: 14,
+    color: '#2D3748',
+    marginBottom: 3,
+  },
+
+  reminderButton: {
+    backgroundColor: '#2C5282',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+
+  reminderButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });

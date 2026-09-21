@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, {useEffect ,useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { createDiaperRecord } from '../services/diaperRecordService'; 
+import { createDiaperRecord } from '../services/diaperRecordService';
+import { getDigestiveAlerts } from '../services/digestiveAlertService';
+import DigestiveAlertCard from '../components/DigestiveAlertCard';
+import type { DigestiveAlert } from '../services/digestiveAlertService';
 
 export default function DiaperRecordScreen({ route, navigation }: any) {
   const { idBebe } = route.params;
@@ -11,7 +14,7 @@ export default function DiaperRecordScreen({ route, navigation }: any) {
   const [wasteType, setWasteType] = useState<'pee' | 'poop' | 'mixed' | 'dry'>('pee');
   const [hadLeak, setHadLeak] = useState(false);
   const [notes, setNotes] = useState('');
-  
+
   // Estados para opciones con "Otro" (Input libre)
   const [peeColorOption, setPeeColorOption] = useState<string>('light_yellow');
   const [customPeeColor, setCustomPeeColor] = useState('');
@@ -31,6 +34,32 @@ export default function DiaperRecordScreen({ route, navigation }: any) {
   const [showPicker, setShowPicker] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const [digestiveAlert, setDigestiveAlert] = useState<DigestiveAlert | null>(null);
+  const [loadingDigestiveAlert, setLoadingDigestiveAlert] = useState(false);
+
+
+  const loadDigestiveAlerts = async () => {
+    try {
+      setLoadingDigestiveAlert(true);
+
+      const alerts = await getDigestiveAlerts(idBebe);
+
+      if (alerts.length > 0) {
+        setDigestiveAlert(alerts[0]);
+      } else {
+        setDigestiveAlert(null);
+      }
+    } catch (error) {
+      console.error('Error cargando alertas digestivas:', error);
+      setDigestiveAlert(null);
+    } finally {
+      setLoadingDigestiveAlert(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDigestiveAlerts();
+  }, [idBebe]);
 
   const onChangeDate = (event: any, selectedDate?: Date) => {
     setShowPicker(false);
@@ -46,19 +75,29 @@ export default function DiaperRecordScreen({ route, navigation }: any) {
 
   const saveDiaper = async () => {
     setLoading(true);
+
     try {
       const isPoop = wasteType === 'poop' || wasteType === 'mixed';
       const isPee = wasteType === 'pee' || wasteType === 'mixed';
 
-      // Parseamos la fecha y hora para la DB
       const changeDate = dateTime.toISOString().split('T')[0];
       const changeTime = dateTime.toTimeString().split(' ')[0];
 
-      // Asignamos el valor final (la opción seleccionada o el texto libre si eligió "Otro")
-      const finalPeeColor = peeColorOption === 'other' ? customPeeColor : peeColorOption;
-      const finalPoopColor = poopColorOption === 'other' ? customPoopColor : poopColorOption;
-      const finalPoopTexture = poopTextureOption === 'other' ? customPoopTexture : poopTextureOption;
-      const finalPoopOdor = poopOdorOption === 'other' ? customPoopOdor : poopOdorOption;
+      const finalPeeColor =
+        peeColorOption === 'other' ? customPeeColor : peeColorOption;
+
+      const finalPoopColor =
+        poopColorOption === 'other' ? customPoopColor : poopColorOption;
+
+      const finalPoopTexture =
+        poopTextureOption === 'other'
+          ? customPoopTexture
+          : poopTextureOption;
+
+      const finalPoopOdor =
+        poopOdorOption === 'other'
+          ? customPoopOdor
+          : poopOdorOption;
 
       await createDiaperRecord({
         babyId: idBebe,
@@ -73,10 +112,24 @@ export default function DiaperRecordScreen({ route, navigation }: any) {
         poopOdor: isPoop ? finalPoopOdor : undefined,
       });
 
-      Alert.alert('Éxito', 'Pañal registrado correctamente');
-      navigation.goBack();
+      const alerts = await getDigestiveAlerts(idBebe);
+
+      if (alerts.length > 0) {
+        setDigestiveAlert(alerts[0]);
+      } else {
+        setDigestiveAlert(null);
+      }
+
+      Alert.alert(
+        'Éxito',
+        'Pañal registrado correctamente'
+      );
+
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudo registrar el pañal');
+      Alert.alert(
+        'Error',
+        error.message || 'No se pudo registrar el pañal'
+      );
     } finally {
       setLoading(false);
     }
@@ -129,6 +182,10 @@ export default function DiaperRecordScreen({ route, navigation }: any) {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.scroll}>
+
+        {digestiveAlert && (
+          <DigestiveAlertCard alert={digestiveAlert} />
+        )}
 
         <Text style={styles.label}>¿Qué contenía el pañal?</Text>
         <View style={styles.rowTabsWrap}>
@@ -286,7 +343,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 16, fontWeight: '600', color: '#4A5568', marginBottom: 8, marginTop: 16 },
 
   rowTabsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
-  
+
   tabButton: {
     flex: 1, minWidth: '22%', paddingVertical: 12, backgroundColor: '#EDF2F7',
     borderRadius: 10, alignItems: 'center', justifyContent: 'center'
