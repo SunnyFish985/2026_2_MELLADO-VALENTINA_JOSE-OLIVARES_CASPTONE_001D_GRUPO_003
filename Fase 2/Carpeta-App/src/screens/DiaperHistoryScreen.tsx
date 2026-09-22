@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getDiaperHistory } from '../services/diaperRecordService';
 
 export default function DiaperHistoryScreen({ route }: any) {
-  const { idBebe } = route.params;
+  const { idBebe, selectedDate } = route.params;
   const [diapers, setDiapers] = useState<any[]>([]);
+  const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -45,6 +46,8 @@ export default function DiaperHistoryScreen({ route }: any) {
     };
     return diccionario[value] || value;
   };
+
+  const visibleDiapers = showAll || !selectedDate ? diapers : diapers.filter((item) => item.change_date === selectedDate);
 
   const renderItem = ({ item }: { item: any }) => {
     // Usamos change_date y change_time que guardamos en la DB
@@ -113,10 +116,11 @@ export default function DiaperHistoryScreen({ route }: any) {
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <FlatList
         contentContainerStyle={styles.listContainer}
-        data={diapers}
+        data={visibleDiapers}
         keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
         renderItem={renderItem}
-        ListEmptyComponent={<Text style={styles.vacio}>Aún no hay pañales registrados.</Text>}
+        ListHeaderComponent={selectedDate ? <View style={styles.filterRow}><TouchableOpacity style={[styles.filterButton, !showAll && styles.filterSelected]} onPress={() => setShowAll(false)}><Text style={styles.filterText}>Solo este día</Text></TouchableOpacity><TouchableOpacity style={[styles.filterButton, showAll && styles.filterSelected]} onPress={() => setShowAll(true)}><Text style={styles.filterText}>Todos</Text></TouchableOpacity></View> : null}
+        ListEmptyComponent={<Text style={styles.vacio}>{selectedDate && !showAll ? 'No existen registros de hoy' : 'Aún no hay pañales registrados.'}</Text>}
       />
     </SafeAreaView>
   );
@@ -163,5 +167,9 @@ const styles = StyleSheet.create({
   detalleLabel: { fontWeight: '600', color: '#718096' },
 
   error: { color: '#E53E3E', textAlign: 'center', marginTop: 20, fontSize: 16 },
-  vacio: { textAlign: 'center', marginTop: 40, color: '#A0AEC0', fontSize: 16 }
+  vacio: { textAlign: 'center', marginTop: 40, color: '#A0AEC0', fontSize: 16 },
+  filterRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  filterButton: { flex: 1, paddingVertical: 10, borderRadius: 9, backgroundColor: '#EDF2F7', alignItems: 'center' },
+  filterSelected: { backgroundColor: '#9F7AEA' },
+  filterText: { color: '#2D3748', fontWeight: '700' },
 });

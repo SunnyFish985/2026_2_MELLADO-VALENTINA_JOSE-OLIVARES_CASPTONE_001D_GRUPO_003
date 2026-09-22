@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../lib/supabase';
-import { logout } from '../services/authService';
 
 export default function HomeScreen({ navigation }: any) {
   const [babies, setBabies] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<{ name: string; photoUrl?: string }>({ name: 'Mi cuenta' });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -13,6 +13,28 @@ export default function HomeScreen({ navigation }: any) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+
+        const metadata = user.user_metadata || {};
+        let profile = {
+          name: metadata.first_name
+            ? `${metadata.first_name} ${metadata.paternal_last_name || ''}`.trim()
+            : user.email || 'Mi cuenta',
+          photoUrl: metadata.avatar_url || metadata.photo_url,
+        };
+
+        const { data: profileData } = await supabase
+          .from('users')
+          .select('first_name, paternal_last_name')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profileData) {
+          profile = {
+            ...profile,
+            name: `${profileData.first_name} ${profileData.paternal_last_name}`.trim(),
+          };
+        }
+        setUserProfile(profile);
 
         // Actualizamos la consulta a las tablas y columnas en inglés
         const { data, error } = await supabase
@@ -36,13 +58,23 @@ export default function HomeScreen({ navigation }: any) {
     return unsubscribe;
   }, [navigation]);
 
-  const handleLogOut = async () => {
-    try {
-      await logout();
-    } catch (error: any) {
-      Alert.alert("Error", "No se pudo cerrar sesión.");
-    }
-  };
+  useEffect(() => {
+    navigation.setOptions({
+      title: 'Inicio',
+      headerTitle: () => (
+        <TouchableOpacity style={styles.userHeader} onPress={() => navigation.navigate('UserMenu')}>
+          {userProfile.photoUrl ? (
+            <Image source={{ uri: userProfile.photoUrl }} style={styles.headerAvatar} />
+          ) : (
+            <View style={styles.headerAvatarFallback}>
+              <Text style={styles.headerAvatarText}>{userProfile.name.charAt(0).toUpperCase()}</Text>
+            </View>
+          )}
+          <Text style={styles.headerUserName} numberOfLines={1}>{userProfile.name}</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, userProfile]);
 
   if (loading) {
     return (
@@ -57,115 +89,45 @@ export default function HomeScreen({ navigation }: any) {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}>
-      <View style={styles.headerRow}>
+      {/* <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>Panel Principal</Text>
-        <TouchableOpacity style={styles.btnLogout} onPress={handleLogOut}>
-          <Text style={styles.btnLogoutText}>Cerrar sesión</Text>
-        </TouchableOpacity>
-      </View>
+      </View> */}
 
       <TouchableOpacity
         style={styles.btnPrimary}
         activeOpacity={0.8}
         onPress={() => navigation.navigate('CreateBaby')}
       >
-        <Text style={styles.btnTextWhite}>+ Crear Nuevo Bebé</Text>
+        <Text style={styles.btnTextWhite}>+ Agregar bebé</Text>
       </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>Tus Bebés Vinculados</Text>
+      <Text style={styles.sectionTitle}>Tus bebés vinculados</Text>
 
       {babies.length === 0 ? (
         <Text style={styles.emptyText}>No tienes bebés vinculados aún.</Text>
       ) : (
         babies.map((bond) => {
-          const relacionBebe = bond.babies;
-          const datosBebe = Array.isArray(relacionBebe) ? relacionBebe[0] : relacionBebe;
-          const nombreCompleto = datosBebe
-            ? `${datosBebe.first_name} ${datosBebe.paternal_last_name}`
+          const babiesArray = bond.babies;
+          const babyData = Array.isArray(babiesArray) ? babiesArray[0] : babiesArray;
+          const fullName = babyData
+            ? `${babyData.first_name} ${babyData.paternal_last_name}`
             : 'Bebé sin nombre';
           return (
             // Usamos baby_id como key
-            <View key={bond.baby_id} style={styles.card}>
-              <View style={styles.cardHeader}>
+            <View
+              key={bond.baby_id}
+              style={styles.card}
+            >
+              <TouchableOpacity
+                style={styles.cardHeader}
+                activeOpacity={0.75}
+                onPress={() => navigation.navigate('BabyDetails', { babyId: bond.baby_id, baby: babyData })}
+              >
                 <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarText}>{nombreCompleto.charAt(0)}</Text>
+                  <Text style={styles.avatarText}>{fullName.charAt(0)}</Text>
                 </View>
-                <Text style={styles.bebeName}>{nombreCompleto}</Text>
-              </View>
-
-              <View style={styles.actionRow}>
-                <TouchableOpacity
-                  style={[styles.btnAction, styles.btnGreen]}
-                  // Mantenemos idBebe en la navegación para no romper las otras vistas
-                  onPress={() => navigation.navigate('FoodRecord', { idBebe: bond.baby_id })}
-                >
-                  <Text style={styles.btnTextWhite}>Registrar Comida</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.btnAction, styles.btnBlue]}
-                  onPress={() => navigation.navigate('FoodHistory', { idBebe: bond.baby_id })}
-                >
-                  <Text style={styles.btnTextWhite}>Ver Comidas</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* <View style={[styles.actionRow, styles.actionRowSpacing]}>
-                <TouchableOpacity
-                  style={[styles.btnAction, styles.btnPurple]}
-                  onPress={() => navigation.navigate('DiaperRecord', { idBebe: bond.baby_id })}
-                >
-                  <Text style={styles.btnTextWhite}>Registrar Pañal</Text>
-                </TouchableOpacity>
-              </View> */}
-
-              <View style={[styles.actionRow, styles.actionRowSpacing]}>
-                <TouchableOpacity
-                  style={[styles.btnAction, styles.btnPurple]}
-                  onPress={() => navigation.navigate('DiaperRecord', { idBebe: bond.baby_id })}
-                >
-                  <Text style={styles.btnTextWhite}>Registrar Pañal</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.btnAction, styles.btnIndigo]}
-                  onPress={() => navigation.navigate('DiaperHistory', { idBebe: bond.baby_id })}
-                >
-                  <Text style={styles.btnTextWhite}>Ver Pañales</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={[styles.actionRow, styles.actionRowSpacing]}>
-                <TouchableOpacity
-                  style={[styles.btnAction, styles.btnNight]}
-                  onPress={() => navigation.navigate('SleepRecord', { idBebe: bond.baby_id })}
-                >
-                  <Text style={styles.btnTextWhite}>Registrar Sueño</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.btnAction, styles.btnNavy]}
-                  onPress={() => navigation.navigate('SleepHistory', { idBebe: bond.baby_id })}
-                >
-                  <Text style={styles.btnTextWhite}>Ver Sueños</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={[styles.actionRow, styles.actionRowSpacing]}>
-                <TouchableOpacity
-                  style={[styles.btnAction, styles.btnMedicine]}
-                  onPress={() => navigation.navigate('MedicationRecord', { idBebe: bond.baby_id })}
-                >
-                  <Text style={styles.btnTextWhite}>Registrar Medicamento</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.btnAction, styles.btnMedicineHistory]}
-                  onPress={() => navigation.navigate('MedicationHistory', { idBebe: bond.baby_id })}
-                >
-                  <Text style={styles.btnTextWhite}>Ver Medicamentos</Text>
-                </TouchableOpacity>
-              </View>
+                <Text style={styles.babyName}>{fullName}</Text>
+              </TouchableOpacity>
 
             </View>
           );
@@ -182,8 +144,14 @@ const styles = StyleSheet.create({
 
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   headerTitle: { fontSize: 28, fontWeight: '800', color: '#2D3748' },
-  btnLogout: { backgroundColor: '#E2E8F0', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
-  btnLogoutText: { color: '#4A5568', fontSize: 14, fontWeight: '600' },
+  userHeader: { flexDirection: 'row', alignItems: 'center'}, // , maxWidth: 190 
+  headerAvatar: { width: 32, height: 32, borderRadius: 16, marginRight: 8 },
+  headerAvatarFallback: {
+    width: 32, height: 32, borderRadius: 16, backgroundColor: '#FFE4E6',
+    justifyContent: 'center', alignItems: 'center', marginRight: 8,
+  },
+  headerAvatarText: { color: '#FF7A8A', fontSize: 15, fontWeight: '800' },
+  headerUserName: { color: '#2D3748', fontSize: 20, fontWeight: '600', flexShrink: 1 },
 
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#4A5568', marginTop: 24, marginBottom: 12 },
   emptyText: { textAlign: 'center', color: '#A0AEC0', marginTop: 20, fontSize: 16 },
@@ -205,7 +173,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center', marginRight: 12
   },
   avatarText: { fontSize: 20, fontWeight: 'bold', color: '#FF7A8A' },
-  bebeName: { fontSize: 20, fontWeight: '600', color: '#2D3748' },
+  babyName: { fontSize: 20, fontWeight: '600', color: '#2D3748' },
 
   actionRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
 

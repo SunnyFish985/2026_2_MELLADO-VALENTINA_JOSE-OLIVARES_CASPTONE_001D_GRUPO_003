@@ -11,7 +11,7 @@ const STATUS_OPTIONS: { value: MedicationLogStatus; label: string }[] = [
 ];
 
 export default function MedicationLogScreen({ route }: any) {
-  const { medication, scheduledAt: initialScheduledAt } = route.params;
+  const { medication, scheduledAt: initialScheduledAt, selectedDate } = route.params;
   const [scheduledAt, setScheduledAt] = useState(
     initialScheduledAt ? new Date(initialScheduledAt) : new Date()
   );
@@ -23,6 +23,7 @@ export default function MedicationLogScreen({ route }: any) {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingLogs, setLoadingLogs] = useState(true);
+  const [showAll, setShowAll] = useState(false);
   const [error, setError] = useState('');
 
   const loadLogs = useCallback(async () => {
@@ -38,6 +39,12 @@ export default function MedicationLogScreen({ route }: any) {
   useEffect(() => {
     loadLogs();
   }, [loadLogs]);
+
+  const visibleLogs = showAll || !selectedDate ? logs : logs.filter((log) => {
+    const date = new Date(log.scheduled_at);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return key === selectedDate;
+  });
 
   const handleSave = async () => {
     setError('');
@@ -138,7 +145,8 @@ export default function MedicationLogScreen({ route }: any) {
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Historial de tomas</Text>
-          {loadingLogs ? <ActivityIndicator color="#2C5282" /> : logs.length === 0 ? <Text style={styles.empty}>Aún no hay tomas registradas.</Text> : logs.map((log) => (
+          {selectedDate ? <View style={styles.filterRow}><TouchableOpacity style={[styles.filterButton, !showAll && styles.filterSelected]} onPress={() => setShowAll(false)}><Text style={styles.filterText}>Solo este día</Text></TouchableOpacity><TouchableOpacity style={[styles.filterButton, showAll && styles.filterSelected]} onPress={() => setShowAll(true)}><Text style={styles.filterText}>Todos</Text></TouchableOpacity></View> : null}
+          {loadingLogs ? <ActivityIndicator color="#2C5282" /> : visibleLogs.length === 0 ? <Text style={styles.empty}>{selectedDate && !showAll ? 'No existen registros de hoy' : 'Aún no hay tomas registradas.'}</Text> : visibleLogs.map((log) => (
             <View key={log.id} style={styles.logRow}>
               <View style={styles.logInfo}>
                 <Text style={styles.logDate}>{new Date(log.scheduled_at).toLocaleString()}</Text>
@@ -200,4 +208,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 5,
   },
+  filterRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
+  filterButton: { flex: 1, paddingVertical: 10, borderRadius: 9, backgroundColor: '#EDF2F7', alignItems: 'center' },
+  filterSelected: { backgroundColor: '#2C5282' },
+  filterText: { color: '#2D3748', fontWeight: '700' },
 });

@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getSleepHistory } from '../services/sleepRecordService';
 import { getSleepAlerts, SleepAlert } from '../services/sleepAlertService';
 import SleepAlertCard from '../components/SleepAlertCard';
 
 export default function SleepHistoryScreen({ route }: any) {
-  const { idBebe } = route.params;
+  const { idBebe, selectedDate } = route.params;
   const [sleeps, setSleeps] = useState<any[]>([]);
+  const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sleepAlert, setSleepAlert] = useState<SleepAlert | null>(null);
@@ -66,6 +67,13 @@ export default function SleepHistoryScreen({ route }: any) {
     if (h === 0) return `${m} min`;
     return m === 0 ? `${h} hrs` : `${h}h ${m}m`;
   };
+
+  const localDate = (value: string) => {
+    const date = new Date(value);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  const visibleSleeps = showAll || !selectedDate ? sleeps : sleeps.filter((item) => localDate(item.start_time) === selectedDate);
 
   const renderItem = ({ item }: { item: any }) => {
     // Convertimos los TIMESTAMPTZ de la DB a objetos Date de JS
@@ -135,21 +143,17 @@ export default function SleepHistoryScreen({ route }: any) {
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <FlatList
         contentContainerStyle={styles.listContainer}
-        data={sleeps}
+        data={visibleSleeps}
         keyExtractor={(item, index) =>
           item.id ? item.id.toString() : index.toString()
         }
         renderItem={renderItem}
 
-        ListHeaderComponent={
-          sleepAlert ? (
-            <SleepAlertCard alert={sleepAlert} />
-          ) : null
-        }
+        ListHeaderComponent={<View>{selectedDate ? <View style={styles.filterRow}><TouchableOpacity style={[styles.filterButton, !showAll && styles.filterSelected]} onPress={() => setShowAll(false)}><Text style={styles.filterText}>Solo este día</Text></TouchableOpacity><TouchableOpacity style={[styles.filterButton, showAll && styles.filterSelected]} onPress={() => setShowAll(true)}><Text style={styles.filterText}>Todos</Text></TouchableOpacity></View> : null}{sleepAlert ? <SleepAlertCard alert={sleepAlert} /> : null}</View>}
 
         ListEmptyComponent={
           <Text style={styles.vacio}>
-            Aún no hay registros de sueño.
+            {selectedDate && !showAll ? 'No existen registros de hoy' : 'Aún no hay registros de sueño.'}
           </Text>
         }
       />
@@ -190,4 +194,8 @@ const styles = StyleSheet.create({
 
   error: { color: '#E53E3E', textAlign: 'center', marginTop: 20, fontSize: 16 },
   vacio: { textAlign: 'center', marginTop: 40, color: '#A0AEC0', fontSize: 16 },
+  filterRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  filterButton: { flex: 1, paddingVertical: 10, borderRadius: 9, backgroundColor: '#EDF2F7', alignItems: 'center' },
+  filterSelected: { backgroundColor: '#2B6CB0' },
+  filterText: { color: '#2D3748', fontWeight: '700' },
 });

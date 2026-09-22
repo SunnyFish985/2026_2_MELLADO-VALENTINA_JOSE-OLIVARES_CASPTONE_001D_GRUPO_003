@@ -17,6 +17,13 @@ import SleepHistoryScreen from '../screens/SleepHistoryScreen';
 import MedicationRecordScreen from '../screens/MedicationRecordScreen';
 import MedicationHistoryScreen from '../screens/MedicationHistoryScreen';
 import MedicationLogScreen from '../screens/MedicationLogScreen';
+import UserMenuScreen from '../screens/UserMenuScreen';
+import BabyDetailsScreen from '../screens/BabyDetailsScreen';
+import BabyMenuScreen from '../screens/BabyMenuScreen';
+import BabyCalendarScreen from '../screens/BabyCalendarScreen';
+import AddBabyRecordScreen from '../screens/AddBabyRecordScreen';
+import DailyRecordsScreen from '../screens/DailyRecordsScreen';
+import RecordDetailsScreen from '../screens/RecordDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -31,6 +38,13 @@ export default function AppNavigator() {
         {session ? (
           <>
             <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Inicio' }} />
+            <Stack.Screen name="UserMenu" component={UserMenuScreen} options={{ title: 'Cuenta' }} />
+            <Stack.Screen name="BabyDetails" component={BabyDetailsScreen} options={{ title: 'Detalle del bebé' }} />
+            <Stack.Screen name="BabyMenu" component={BabyMenuScreen} options={{ title: 'Menú del bebé' }} />
+            <Stack.Screen name="BabyCalendar" component={BabyCalendarScreen} options={{ title: 'Calendario' }} />
+            <Stack.Screen name="AddBabyRecord" component={AddBabyRecordScreen} options={{ title: 'Nuevo registro' }} />
+            <Stack.Screen name="DailyRecords" component={DailyRecordsScreen} options={{ title: 'Registros del día' }} />
+            <Stack.Screen name="RecordDetails" component={RecordDetailsScreen} options={{ title: 'Detalle del registro' }} />
             <Stack.Screen name="CreateBaby" component={CreateBabyScreen} options={{ title: 'Crear Bebé' }} />
             <Stack.Screen name="FoodRecord" component={FoodRecordScreen} options={{ title: 'Registrar Comida' }} />
             <Stack.Screen name="FoodHistory" component={FoodHistoryScreen} options={{ title: 'Historial de Comidas' }} />

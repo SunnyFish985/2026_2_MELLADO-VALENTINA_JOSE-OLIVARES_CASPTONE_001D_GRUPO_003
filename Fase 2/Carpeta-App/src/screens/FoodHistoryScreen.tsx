@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // Importamos el nuevo nombre de la función
 import { getFoodHistory } from '../services/foodRecordService';
 
 export default function FoodHistoryScreen({ route }: any) {
   // Mantenemos idBebe porque así lo debe estar enviando tu navegación actual
-  const { idBebe } = route.params;
+  const { idBebe, selectedDate } = route.params;
   const [foods, setFoods] = useState<any[]>([]);
+  const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -45,6 +46,13 @@ export default function FoodHistoryScreen({ route }: any) {
     };
     return diccionario[lado] || lado;
   };
+
+  const localDate = (value: string) => {
+    const date = new Date(value);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  const visibleFoods = showAll || !selectedDate ? foods : foods.filter((item) => localDate(item.recorded_at) === selectedDate);
 
   const renderItem = ({ item }: { item: any }) => {
     // Usamos recorded_at en lugar de fecha_hora_comida
@@ -106,11 +114,12 @@ export default function FoodHistoryScreen({ route }: any) {
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <FlatList
         contentContainerStyle={styles.listContainer}
-        data={foods}
+        data={visibleFoods}
         // La llave primaria ahora es simplemente 'id'
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        ListEmptyComponent={<Text style={styles.vacio}>Aún no hay comidas registradas.</Text>}
+        ListHeaderComponent={selectedDate ? <View style={styles.filterRow}><TouchableOpacity style={[styles.filterButton, !showAll && styles.filterSelected]} onPress={() => setShowAll(false)}><Text style={styles.filterText}>Solo este día</Text></TouchableOpacity><TouchableOpacity style={[styles.filterButton, showAll && styles.filterSelected]} onPress={() => setShowAll(true)}><Text style={styles.filterText}>Todos</Text></TouchableOpacity></View> : null}
+        ListEmptyComponent={<Text style={styles.vacio}>{selectedDate && !showAll ? 'No existen registros de hoy' : 'Aún no hay comidas registradas.'}</Text>}
       />
     </SafeAreaView>
   );
@@ -157,5 +166,9 @@ const styles = StyleSheet.create({
   detalleLabel: { fontWeight: '600', color: '#718096' },
 
   error: { color: '#E53E3E', textAlign: 'center', marginTop: 20, fontSize: 16 },
-  vacio: { textAlign: 'center', marginTop: 40, color: '#A0AEC0', fontSize: 16 }
+  vacio: { textAlign: 'center', marginTop: 40, color: '#A0AEC0', fontSize: 16 },
+  filterRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  filterButton: { flex: 1, paddingVertical: 10, borderRadius: 9, backgroundColor: '#EDF2F7', alignItems: 'center' },
+  filterSelected: { backgroundColor: '#4299E1' },
+  filterText: { color: '#2D3748', fontWeight: '700' },
 });
